@@ -18,7 +18,7 @@
     <description>Dormitory Snack Shop B2C E-Commerce System</description>
 
     <properties>
-        <java.version>23</java.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
