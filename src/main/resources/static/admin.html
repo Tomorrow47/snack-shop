@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>宿舍零食铺 - 管理后台</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        /* Space Grotesk loaded locally via fallback */
+        :root {
+            --pink:#FF3366; --blue:#3366FF; --yellow:#FFCC33; --green:#33CC99;
+            --ink:#1a1a2e; --ink2:#64748b; --ink3:#94a3b8;
+            --bg:#FFF8F0; --card:#fff;
+            --bdr:#1a1a2e; --bdr2:#E2E8F0;
+            --sh:4px 4px 0 #1a1a2e; --sh-s:2px 2px 0 #1a1a2e; --sh-l:6px 6px 0 #1a1a2e;
+            --r:6px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+        /* ===== LOGIN ===== */
+        .login-wrap{display:flex;justify-content:center;align-items:center;min-height:100vh;background:var(--ink);position:relative;overflow:hidden}
+        .login-wrap .deco{position:absolute;border:3px solid rgba(255,255,255,.15);border-radius:var(--r);font-weight:700;padding:8px 16px;font-size:14px;pointer-events:none;color:rgba(255,255,255,.3)}
+        .login-wrap .d1{top:10%;left:6%;transform:rotate(-8deg)}
+        .login-wrap .d2{top:20%;right:8%;transform:rotate(5deg);color:rgba(255,51,102,.4);border-color:rgba(255,51,102,.3)}
+        .login-wrap .d3{bottom:15%;left:10%;transform:rotate(4deg);color:rgba(51,102,255,.4);border-color:rgba(51,102,255,.3)}
+        .login-wrap .d4{bottom:8%;right:6%;transform:rotate(-3deg);color:rgba(255,204,51,.4);border-color:rgba(255,204,51,.3)}
+        .login-box{background:var(--card);padding:36px 32px 28px;border-radius:var(--r);width:380px;border:3px solid var(--bdr);box-shadow:8px 8px 0 rgba(255,255,255,.1);position:relative;z-index:1}
+        .login-title{text-align:center;margin-bottom:24px}
+        .login-title h2{font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+        .login-title p{font-size:13px;color:var(--ink2);margin-top:4px}
+        .login-box .el-input__wrapper{border-radius:var(--r)!important;box-shadow:0 0 0 2px var(--bdr2) inset!important}
+        .login-box .el-input__wrapper:hover{box-shadow:0 0 0 2px var(--blue) inset!important}
+        .login-box .el-input__wrapper.is-focus{box-shadow:0 0 0 2.5px var(--blue) inset!important}
+        .login-btn{width:100%;height:46px;border-radius:var(--r)!important;font-size:15px!important;font-weight:700;background:var(--blue)!important;border:2.5px solid var(--bdr)!important;color:#fff!important;box-shadow:var(--sh)!important;transition:all .15s!important}
+        .login-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--bdr)!important}
+        .login-btn:active{transform:translate(2px,2px);box-shadow:none!important}
+        .login-tip{text-align:center;margin-top:14px;padding:8px;background:var(--bg);border:2px solid var(--bdr2);border-radius:var(--r);font-size:12px;color:var(--ink2);font-weight:600}
+
+        /* ===== LAYOUT ===== */
+        .layout{display:flex;min-height:100vh}
+
+        /* ===== SIDEBAR ===== */
+        .sidebar{width:220px;background:#fff;flex-shrink:0;display:flex;flex-direction:column;border-right:3px solid var(--bdr);position:relative;z-index:10}
+        .sb-brand{padding:18px 20px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--bdr)}
+        .sb-brand .dot{width:12px;height:12px;border-radius:var(--r);background:var(--pink);border:2px solid var(--bdr);box-shadow:var(--sh-s)}
+        .sb-brand span{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+        .sb-menu{padding:8px 8px;flex:1;display:flex;flex-direction:column;gap:2px}
+        .sb-item{padding:10px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--ink2);border-radius:var(--r);border:2px solid transparent;position:relative}
+        .sb-item:hover{background:var(--bg);color:var(--ink);border-color:var(--bdr2)}
+        .sb-item.on{background:var(--yellow);color:var(--ink);border-color:var(--bdr);box-shadow:var(--sh-s)}
+        .sb-foot{padding:14px 20px;border-top:3px solid var(--bdr);font-size:10px;color:var(--ink3);text-align:center;font-weight:600;letter-spacing:.5px}
+
+        /* ===== MAIN ===== */
+        .main{flex:1;display:flex;flex-direction:column;min-width:0}
+        .topbar{background:#fff;padding:0 24px;height:52px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--bdr);flex-shrink:0}
+        .topbar .ptitle{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+        .topbar .ainfo{display:flex;align-items:center;gap:8px}
+        .topbar .aname{font-size:12px;font-weight:700;padding:5px 10px;background:var(--bg);border:2px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh-s)}
+        .topbar .ainfo .el-button{font-weight:700;font-size:13px}
+        .content{flex:1;padding:24px 24px;overflow-y:auto}
+
+        /* ===== BENTO STAT CARDS ===== */
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:auto auto;gap:16px;margin-bottom:28px}
+        .st-card{border-radius:var(--r);padding:20px 18px;border:2.5px solid var(--bdr);transition:all .2s;position:relative;box-shadow:var(--sh);display:flex;flex-direction:column;justify-content:center}
+        .st-card:hover{transform:translate(-3px,-3px);box-shadow:var(--sh-l)}
+        .st-card .st-icon{font-size:28px;margin-bottom:10px}
+        .st-card .st-num{font-size:32px;font-weight:700;line-height:1;letter-spacing:-1px}
+        .st-card .st-label{color:var(--ink2);margin-top:6px;font-size:12px;font-weight:600;letter-spacing:.3px}
+        .st-card:nth-child(1){grid-column:span 2;background:var(--yellow);flex-direction:row;align-items:center;gap:20px;padding:24px 28px}
+        .st-card:nth-child(1) .st-icon{font-size:48px;margin-bottom:0}
+        .st-card:nth-child(1) .st-num{font-size:40px}
+        .st-card:nth-child(2){background:var(--green)}
+        .st-card:nth-child(3){background:var(--blue);color:#fff}
+        .st-card:nth-child(3) .st-label{color:rgba(255,255,255,.7)}
+        .st-card:nth-child(4){grid-column:span 4;background:var(--pink);color:#fff;flex-direction:row;align-items:center;gap:20px;padding:20px 28px}
+        .st-card:nth-child(4) .st-label{color:rgba(255,255,255,.7)}
+        .st-card:nth-child(4) .st-icon{font-size:40px;margin-bottom:0}
+        .st-card:nth-child(4) .st-num{font-size:28px}
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+        .qa-btn{padding:8px 16px;border:2.5px solid var(--bdr);border-radius:var(--r);background:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:var(--sh-s);font-family:inherit;display:flex;align-items:center;gap:6px}
+        .qa-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)}
+        .qa-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+        /* ===== CARDS ===== */
+        .card{background:var(--card);border-radius:var(--r);padding:20px 22px;margin-bottom:18px;width:100%;border:2.5px solid var(--bdr);box-shadow:var(--sh);transition:all .2s}
+        .card:hover{box-shadow:var(--sh-m,5px 5px 0 var(--bdr))}
+        .card-head{font-size:14px;font-weight:700;margin-bottom:16px;padding-bottom:12px;border-bottom:2.5px dashed var(--bdr2);display:flex;align-items:center;gap:8px}
+        .card-head::before{content:'';width:4px;height:18px;background:var(--pink);border-radius:2px}
+        .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+
+        /* ===== TABLE ===== */
+        .el-table{width:100%!important;border-radius:var(--r)!important;overflow:hidden!important;border:2px solid var(--bdr)!important}
+        .el-table__header-wrapper,.el-table__body-wrapper,.el-table__fixed-header-wrapper,.el-table__fixed-body-wrapper{width:100%!important}
+        .el-table__header-wrapper table,.el-table__body-wrapper table{width:100%!important;table-layout:fixed!important}
+        .el-table th.el-table__cell{background:var(--bg)!important;font-weight:700!important;color:var(--ink)!important;font-size:11px!important;text-transform:uppercase;letter-spacing:.5px;border-bottom:2.5px solid var(--bdr)!important}
+        .el-table td.el-table__cell{font-size:13px;color:var(--ink);font-weight:500}
+        .el-table__header-wrapper th,.el-table__body-wrapper td{overflow:hidden;text-overflow:ellipsis}
+        .el-table .cell{word-break:break-word}
+        .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell{background:var(--bg)!important}
+        .el-table__body tr:hover td.el-table__cell{background:#FFF0DB!important}
+
+        /* ===== DIALOGS ===== */
+        .el-dialog{border-radius:var(--r)!important;border:3px solid var(--bdr)!important;box-shadow:8px 8px 0 rgba(0,0,0,.15)!important;overflow:hidden}
+        .el-dialog__header{padding:14px 22px!important;border-bottom:2.5px solid var(--bdr);margin-right:0!important;background:var(--bg)}
+        .el-dialog__title{font-weight:700!important;font-size:16px!important}
+        .el-dialog__body{padding:18px 22px!important}
+        .el-dialog__footer{padding:12px 22px!important;border-top:2.5px solid var(--bdr);background:var(--bg)}
+        .el-overlay{background:rgba(26,26,46,.4)!important}
+
+        /* ===== ELEMENT PLUS ===== */
+        .el-button--primary{background:var(--blue)!important;border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;font-weight:600;border-radius:var(--r)!important}
+        .el-button--primary:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)!important}
+        .el-tag{border-radius:var(--r)!important;font-weight:700;border:1.5px solid var(--bdr)!important}
+        .el-input__wrapper{border-radius:var(--r)!important}
+        .el-input-number{--el-input-number-bg-color:var(--bg)}
+        .empty-state{text-align:center;padding:60px;color:var(--ink3);font-size:14px;font-weight:600}
+
+        /* ===== ORDER DETAIL ===== */
+        .od-box{background:var(--bg);padding:14px 16px;border-radius:var(--r);margin-bottom:14px;font-size:13px;line-height:2.1;border:2.5px solid var(--bdr);box-shadow:var(--sh-s)}
+        .od-box b{color:var(--ink);font-weight:700}
+        .od-row{display:flex;justify-content:space-between;align-items:center}
+        .od-items-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .od-items-title::before{content:'';width:3px;height:14px;background:var(--pink);border-radius:2px}
+        .od-item-row{display:flex;justify-content:space-between;padding:7px 4px;border-bottom:2px dashed var(--bdr2);font-size:13px;font-weight:500}
+        .od-item-row .pr{color:var(--pink);font-weight:700}
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar{width:8px}
+        ::-webkit-scrollbar-track{background:var(--bg)}
+        ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:var(--r);border:2px solid var(--bg)}
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Admin Login -->
+    <div v-if="!admin" class="login-wrap">
+        <div class="deco d1">⚙️ ADMIN</div>
+        <div class="deco d2">📊 DATA</div>
+        <div class="deco d3">🛒 SHOP</div>
+        <div class="deco d4">📋 ORDERS</div>
+        <div class="login-box">
+            <div class="login-title">
+                <h2>🔐 管理后台登录</h2>
+                <p>宿舍零食铺管理系统</p>
+            </div>
+            <el-form>
+                <el-form-item><el-input v-model="loginForm.username" placeholder="管理员账号" size="large" prefix-icon="User" /></el-form-item>
+                <el-form-item><el-input v-model="loginForm.password" placeholder="密码" type="password" size="large" show-password prefix-icon="Lock" @keyup.enter="doLogin" /></el-form-item>
+                <el-form-item><el-button type="primary" size="large" class="login-btn" @click="doLogin">登 录</el-button></el-form-item>
+            </el-form>
+            <div class="login-tip">默认账号：admin / admin123</div>
+        </div>
+    </div>
+
+    <!-- Admin Layout -->
+    <div v-else class="layout">
+        <div class="sidebar">
+            <div class="sb-brand"><span class="dot"></span><span>零食铺后台</span></div>
+            <div class="sb-menu">
+                <div class="sb-item" :class="{on:currentPage==='dashboard'}" @click="currentPage='dashboard';refreshTables()">📊 数据概览</div>
+                <div class="sb-item" :class="{on:currentPage==='goods'}" @click="currentPage='goods';loadGoods();refreshTables()">🛒 商品管理</div>
+                <div class="sb-item" :class="{on:currentPage==='category'}" @click="currentPage='category';loadCategories();refreshTables()">📁 分类管理</div>
+                <div class="sb-item" :class="{on:currentPage==='orders'}" @click="currentPage='orders';loadOrders();refreshTables()">📋 订单管理</div>
+                <div class="sb-item" :class="{on:currentPage==='aftersale'}" @click="currentPage='aftersale';loadAfterSales();refreshTables()">🔧 售后管理</div>
+                <div class="sb-item" :class="{on:currentPage==='users'}" @click="currentPage='users';loadUsers();refreshTables()">👥 用户管理</div>
+                <div class="sb-item" :class="{on:currentPage==='logs'}" @click="currentPage='logs';loadLogs();refreshTables()">📝 系统日志</div>
+            </div>
+            <div class="sb-foot">DORM SNACK SHOP v1.0</div>
+        </div>
+        <div class="main">
+            <div class="topbar">
+                <span class="ptitle">{{ pageTitle }}</span>
+                <div class="ainfo">
+                    <span class="aname">{{ admin.name }}</span>
+                    <el-button text type="danger" @click="doLogout" style="font-weight:700">退出</el-button>
+                </div>
+            </div>
+            <div class="content">
+                <!-- Dashboard -->
+                <div v-show="currentPage==='dashboard'">
+                    <div class="stats">
+                        <div class="st-card"><div class="st-icon">📦</div><div class="st-num">{{ dashboard.totalOrders||0 }}</div><div class="st-label">总订单数</div></div>
+                        <div class="st-card"><div class="st-icon">✅</div><div class="st-num">{{ dashboard.completedOrders||0 }}</div><div class="st-label">已完成订单</div></div>
+                        <div class="st-card"><div class="st-icon">📅</div><div class="st-num">{{ dashboard.todayOrders||0 }}</div><div class="st-label">今日订单</div></div>
+                        <div class="st-card"><div class="st-icon">💰</div><div class="st-num" style="font-size:24px">¥{{ dashboard.revenue||0 }}</div><div class="st-label">总营收</div></div>
+                    </div>
+                    <div class="quick-bar">
+                        <button class="qa-btn" @click="currentPage='goods';loadGoods();refreshTables()">🛒 管理商品</button>
+                        <button class="qa-btn" @click="currentPage='orders';loadOrders();refreshTables()">📋 查看订单</button>
+                        <button class="qa-btn" @click="currentPage='aftersale';loadAfterSales();refreshTables()">🔧 处理售后</button>
+                        <button class="qa-btn" @click="currentPage='users';loadUsers();refreshTables()">👥 用户管理</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-head">库存预警商品</div>
+                        <el-table :data="lowStockGoods" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="60" />
+                            <el-table-column prop="name" label="商品名称" min-width="180" />
+                            <el-table-column prop="stock" label="当前库存" width="100"><template #default="{row}"><el-tag type="danger" size="small">{{ row.stock }}</el-tag></template></el-table-column>
+                            <el-table-column prop="stockWarning" label="预警值" width="100" />
+                            <el-table-column prop="sales" label="累计销量" width="100" />
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- Goods -->
+                <div v-show="currentPage==='goods'">
+                    <div class="card">
+                        <div class="toolbar">
+                            <el-button type="primary" @click="openGoodsDialog(null)">+ 新增商品</el-button>
+                            <el-input v-model="goodsSearch" placeholder="搜索商品" style="width:220px" clearable @clear="loadGoods" @keyup.enter="searchGoodsList">
+                                <template #append><el-button @click="searchGoodsList">搜索</el-button></template>
+                            </el-input>
+                        </div>
+                        <el-table :data="goodsList" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="50" />
+                            <el-table-column prop="name" label="商品名称" min-width="180" />
+                            <el-table-column label="分类" width="90"><template #default="{row}">{{ getCategoryName(row.categoryId) }}</template></el-table-column>
+                            <el-table-column prop="price" label="价格" width="70"><template #default="{row}">¥{{ row.price }}</template></el-table-column>
+                            <el-table-column prop="stock" label="库存" width="65" />
+                            <el-table-column prop="sales" label="销量" width="65" />
+                            <el-table-column label="状态" width="70"><template #default="{row}"><el-tag :type="row.status===1?'success':'info'" size="small">{{ row.status===1?'上架':'下架' }}</el-tag></template></el-table-column>
+                            <el-table-column label="热销" width="55"><template #default="{row}">{{ row.isHot?'🔥':'-' }}</template></el-table-column>
+                            <el-table-column label="推荐" width="55"><template #default="{row}">{{ row.isRecommend?'⭐':'-' }}</template></el-table-column>
+                            <el-table-column label="操作" width="160" fixed="right">
+                                <template #default="{row}"><el-button text type="primary" size="small" @click="openGoodsDialog(row)">编辑</el-button><el-button text :type="row.status===1?'warning':'success'" size="small" @click="toggleGoods(row)">{{ row.status===1?'下架':'上架' }}</el-button></template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div v-show="currentPage==='category'">
+                    <div class="card">
+                        <div class="toolbar"><el-button type="primary" @click="openCategoryDialog(null)">+ 新增分类</el-button></div>
+                        <el-table :data="categoryList" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="60" />
+                            <el-table-column prop="name" label="分类名称" min-width="200" />
+                            <el-table-column prop="sortOrder" label="排序" width="100" />
+                            <el-table-column label="状态" width="100"><template #default="{row}"><el-tag :type="row.status===1?'success':'info'" size="small">{{ row.status===1?'启用':'禁用' }}</el-tag></template></el-table-column>
+                            <el-table-column label="操作" width="180">
+                                <template #default="{row}"><el-button text type="primary" size="small" @click="openCategoryDialog(row)">编辑</el-button><el-button text type="danger" size="small" @click="deleteCategory(row)">删除</el-button></template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- Orders -->
+                <div v-show="currentPage==='orders'">
+                    <div class="card">
+                        <div class="toolbar">
+                            <el-select v-model="orderFilter" placeholder="按状态筛选" clearable @change="loadOrders" style="width:150px">
+                                <el-option :value="null" label="全部订单" /><el-option :value="0" label="待支付" /><el-option :value="1" label="已支付" /><el-option :value="2" label="备货中" /><el-option :value="3" label="配送中" /><el-option :value="4" label="已完成" /><el-option :value="5" label="已取消" /><el-option :value="6" label="已退款" />
+                            </el-select>
+                        </div>
+                        <el-table :data="orderList" stripe size="small" style="width:100%">
+                            <el-table-column prop="orderNo" label="订单号" min-width="190" />
+                            <el-table-column label="用户" width="80"><template #default="{row}">{{ row.user?.nickname||row.user?.username }}</template></el-table-column>
+                            <el-table-column prop="totalAmount" label="金额" width="80"><template #default="{row}">¥{{ row.totalAmount }}</template></el-table-column>
+                            <el-table-column label="支付" width="80"><template #default="{row}">{{ ['未支付','微信','支付宝'][row.payType]||'未支付' }}</template></el-table-column>
+                            <el-table-column prop="dormitory" label="宿舍" width="80" />
+                            <el-table-column label="状态" width="90"><template #default="{row}"><el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag></template></el-table-column>
+                            <el-table-column prop="createTime" label="下单时间" min-width="170" />
+                            <el-table-column label="操作" width="240" fixed="right">
+                                <template #default="{row}">
+                                    <el-button v-if="row.status===1" text type="primary" size="small" @click="updateOrderStatus(row,2)">接单</el-button>
+                                    <el-button v-if="row.status===2" text type="primary" size="small" @click="updateOrderStatus(row,3)">配送</el-button>
+                                    <el-button v-if="row.status===3" text type="success" size="small" @click="updateOrderStatus(row,4)">完成</el-button>
+                                    <el-button v-if="row.status>=1&&row.status<=3" text type="danger" size="small" @click="refundOrder(row)">退款</el-button>
+                                    <el-button text size="small" @click="viewOrderDetail(row)">详情</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- After-sale -->
+                <div v-show="currentPage==='aftersale'">
+                    <div class="card">
+                        <el-table :data="afterSaleList" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="50" />
+                            <el-table-column label="订单号" min-width="190"><template #default="{row}">{{ row.order?.orderNo }}</template></el-table-column>
+                            <el-table-column label="类型" width="85"><template #default="{row}">{{ ['','退款','退货退款','换货','投诉'][row.type] }}</template></el-table-column>
+                            <el-table-column prop="reason" label="原因" min-width="130" />
+                            <el-table-column prop="description" label="描述" min-width="130" />
+                            <el-table-column label="状态" width="80"><template #default="{row}"><el-tag :type="['warning','primary','success','danger'][row.status]" size="small">{{ ['待处理','处理中','已完成','已拒绝'][row.status] }}</el-tag></template></el-table-column>
+                            <el-table-column prop="adminReply" label="回复" width="120" />
+                            <el-table-column label="操作" width="160">
+                                <template #default="{row}"><el-button v-if="row.status===0" text type="success" size="small" @click="handleAfterSale(row,2)">通过</el-button><el-button v-if="row.status===0" text type="danger" size="small" @click="handleAfterSale(row,3)">拒绝</el-button></template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- Users -->
+                <div v-show="currentPage==='users'">
+                    <div class="card">
+                        <el-table :data="userList" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="50" />
+                            <el-table-column prop="username" label="用户名" min-width="110" />
+                            <el-table-column prop="nickname" label="昵称" min-width="100" />
+                            <el-table-column prop="phone" label="手机号" min-width="120" />
+                            <el-table-column prop="dormitory" label="宿舍" width="80" />
+                            <el-table-column label="状态" width="70"><template #default="{row}"><el-tag :type="row.status===1?'success':'danger'" size="small">{{ row.status===1?'正常':'禁用' }}</el-tag></template></el-table-column>
+                            <el-table-column prop="createTime" label="注册时间" min-width="170" />
+                            <el-table-column label="操作" width="80"><template #default="{row}"><el-button text :type="row.status===1?'danger':'success'" size="small" @click="toggleUser(row)">{{ row.status===1?'禁用':'启用' }}</el-button></template></el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div v-show="currentPage==='logs'">
+                    <div class="card">
+                        <el-table :data="logList" stripe size="small" style="width:100%">
+                            <el-table-column prop="id" label="ID" width="50" />
+                            <el-table-column prop="userType" label="用户类型" width="80" />
+                            <el-table-column prop="action" label="操作类型" width="100" />
+                            <el-table-column prop="detail" label="详情" min-width="250" />
+                            <el-table-column prop="ip" label="IP" width="130" />
+                            <el-table-column prop="createTime" label="时间" min-width="170" />
+                        </el-table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goods Dialog -->
+    <el-dialog v-model="goodsDialogVisible" :title="goodsForm.id?'编辑商品':'新增商品'" width="550px">
+        <el-form :model="goodsForm" label-width="80px">
+            <el-form-item label="商品名称"><el-input v-model="goodsForm.name" /></el-form-item>
+            <el-form-item label="分类"><el-select v-model="goodsForm.categoryId" style="width:100%"><el-option v-for="c in categoryList" :key="c.id" :value="c.id" :label="c.name" /></el-select></el-form-item>
+            <el-form-item label="售价"><el-input-number v-model="goodsForm.price" :min="0" :precision="2" style="width:100%" /></el-form-item>
+            <el-form-item label="原价"><el-input-number v-model="goodsForm.originalPrice" :min="0" :precision="2" style="width:100%" /></el-form-item>
+            <el-form-item label="库存"><el-input-number v-model="goodsForm.stock" :min="0" style="width:100%" /></el-form-item>
+            <el-form-item label="描述"><el-input v-model="goodsForm.description" type="textarea" :rows="2" /></el-form-item>
+            <el-form-item label="热销"><el-switch v-model="goodsForm.isHot" :active-value="1" :inactive-value="0" /></el-form-item>
+            <el-form-item label="推荐"><el-switch v-model="goodsForm.isRecommend" :active-value="1" :inactive-value="0" /></el-form-item>
+        </el-form>
+        <template #footer><el-button @click="goodsDialogVisible=false" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消</el-button><el-button type="primary" @click="saveGoods">保存</el-button></template>
+    </el-dialog>
+
+    <!-- Category Dialog -->
+    <el-dialog v-model="categoryDialogVisible" :title="categoryForm.id?'编辑分类':'新增分类'" width="400px">
+        <el-form :model="categoryForm" label-width="80px">
+            <el-form-item label="分类名称"><el-input v-model="categoryForm.name" /></el-form-item>
+            <el-form-item label="排序"><el-input-number v-model="categoryForm.sortOrder" :min="0" /></el-form-item>
+            <el-form-item label="状态"><el-switch v-model="categoryForm.status" :active-value="1" :inactive-value="0" /></el-form-item>
+        </el-form>
+        <template #footer><el-button @click="categoryDialogVisible=false" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消</el-button><el-button type="primary" @click="saveCategory">保存</el-button></template>
+    </el-dialog>
+
+    <!-- Order Detail Dialog -->
+    <el-dialog v-model="orderDetailVisible" title="订单详情" width="550px">
+        <div v-if="orderDetailData">
+            <div class="od-box">
+                <div class="od-row"><span><b>订单号：</b>{{ orderDetailData.orderNo }}</span><el-tag :type="statusType(orderDetailData.status)" size="small">{{ statusText(orderDetailData.status) }}</el-tag></div>
+                <div><b>用户：</b>{{ orderDetailData.user?.nickname }} | {{ orderDetailData.dormitory }} | {{ orderDetailData.phone }}</div>
+                <div><b>金额：</b><span style="color:var(--pink);font-weight:700">¥{{ orderDetailData.totalAmount }}</span> | 支付：{{ ['未支付','微信','支付宝'][orderDetailData.payType] }}</div>
+                <div><b>下单时间：</b>{{ orderDetailData.createTime }}</div>
+                <div v-if="orderDetailData.payTime"><b>支付时间：</b>{{ orderDetailData.payTime }}</div>
+            </div>
+            <div class="od-items-title">商品明细 ({{ orderDetailData.items?.length || 0 }}件)</div>
+            <div style="max-height:240px;overflow-y:auto">
+                <div v-for="item in orderDetailData.items" :key="item.id" class="od-item-row">
+                    <span>{{ item.goodsName }} × {{ item.quantity }}</span>
+                    <span class="pr">¥{{ item.subtotal }}</span>
+                </div>
+            </div>
+        </div>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+const app = createApp({
+    setup() {
+        const api = '/api';
+        const admin = ref(null);
+        const loginForm = reactive({ username:'', password:'' });
+        const currentPage = ref('dashboard');
+        const dashboard = ref({});
+        const lowStockGoods = ref([]);
+        const goodsList = ref([]);
+        const goodsSearch = ref('');
+        const categoryList = ref([]);
+        const orderList = ref([]);
+        const orderFilter = ref(null);
+        const afterSaleList = ref([]);
+        const userList = ref([]);
+        const logList = ref([]);
+        const goodsDialogVisible = ref(false);
+        const goodsForm = reactive({ id:null, name:'', categoryId:null, price:0, originalPrice:0, stock:0, description:'', isHot:0, isRecommend:0, status:1 });
+        const categoryDialogVisible = ref(false);
+        const categoryForm = reactive({ id:null, name:'', sortOrder:0, status:1 });
+        const orderDetailVisible = ref(false);
+        const orderDetailData = ref(null);
+
+        const pageTitle = computed(() => ({dashboard:'📊 数据概览',goods:'🛒 商品管理',category:'📁 分类管理',orders:'📋 订单管理',aftersale:'🔧 售后管理',users:'👥 用户管理',logs:'📝 系统日志'}[currentPage.value]));
+        const statusText = (s) => ['待支付','已支付','备货中','配送中','已完成','已取消','已退款'][s]||'未知';
+        const statusType = (s) => ['warning','primary','primary','primary','success','info','danger'][s]||'info';
+        const getCategoryName = (id) => { const c = categoryList.value.find(x=>x.id===id); return c?c.name:'-'; };
+
+        const doLogin = async () => { const r=await axios.post(api+'/admin/login',loginForm);if(r.data.code===200){admin.value=r.data.data;localStorage.setItem('admin',JSON.stringify(admin.value));loadDashboard();loadCategories()}else ElementPlus.ElMessage.error(r.data.message); };
+        const loadDashboard = async () => { const r=await axios.get(api+'/order/dashboard');if(r.data.code===200)dashboard.value=r.data.data;const r2=await axios.get(api+'/goods/low-stock');if(r2.data.code===200)lowStockGoods.value=r2.data.data; };
+        const loadCategories = async () => { const r=await axios.get(api+'/category/all');if(r.data.code===200)categoryList.value=r.data.data; };
+        const loadGoods = async () => { const r=await axios.get(api+'/goods/list');if(r.data.code===200)goodsList.value=r.data.data; };
+        const searchGoodsList = async () => { if(!goodsSearch.value)return loadGoods();const r=await axios.get(api+'/goods/search?keyword='+goodsSearch.value);if(r.data.code===200)goodsList.value=r.data.data; };
+        const openGoodsDialog = (g) => { if(g){Object.assign(goodsForm,g)}else{Object.assign(goodsForm,{id:null,name:'',categoryId:categoryList.value[0]?.id,price:0,originalPrice:0,stock:0,description:'',isHot:0,isRecommend:0,status:1})}goodsDialogVisible.value=true; };
+        const saveGoods = async () => { const url=goodsForm.id?api+'/goods/'+goodsForm.id:api+'/goods';const r=goodsForm.id?await axios.put(url,goodsForm):await axios.post(url,goodsForm);if(r.data.code===200){ElementPlus.ElMessage.success('保存成功');goodsDialogVisible.value=false;loadGoods()}else ElementPlus.ElMessage.error(r.data.message); };
+        const toggleGoods = async (g) => { await axios.put(api+'/goods/'+g.id+'/toggle');loadGoods(); };
+        const openCategoryDialog = (c) => { if(c){Object.assign(categoryForm,c)}else{Object.assign(categoryForm,{id:null,name:'',sortOrder:0,status:1})}categoryDialogVisible.value=true; };
+        const saveCategory = async () => { const url=categoryForm.id?api+'/category/'+categoryForm.id:api+'/category';const r=categoryForm.id?await axios.put(url,categoryForm):await axios.post(url,categoryForm);if(r.data.code===200){ElementPlus.ElMessage.success('保存成功');categoryDialogVisible.value=false;loadCategories()}else ElementPlus.ElMessage.error(r.data.message); };
+        const deleteCategory = async (c) => { await ElementPlus.ElMessageBox.confirm('确定删除？','提示',{type:'warning'});await axios.delete(api+'/category/'+c.id);loadCategories(); };
+        const loadOrders = async () => { const url=orderFilter.value!==null?api+'/order/list?status='+orderFilter.value:api+'/order/list';const r=await axios.get(url);if(r.data.code===200)orderList.value=r.data.data; };
+        const updateOrderStatus = async (o,status) => { const r=await axios.put(api+'/order/'+o.id+'/status',{status});if(r.data.code===200){ElementPlus.ElMessage.success('操作成功');loadOrders()}else ElementPlus.ElMessage.error(r.data.message); };
+        const refundOrder = async (o) => { await ElementPlus.ElMessageBox.confirm('确定退款？','提示',{type:'warning'});const r=await axios.post(api+'/payment/refund/'+o.id);if(r.data.code===200){ElementPlus.ElMessage.success('退款成功');loadOrders()}else ElementPlus.ElMessage.error(r.data.message); };
+        const viewOrderDetail = (o) => { orderDetailData.value=o;orderDetailVisible.value=true; };
+        const loadAfterSales = async () => { const r=await axios.get(api+'/after-sale/list');if(r.data.code===200)afterSaleList.value=r.data.data; };
+        const handleAfterSale = async (a,status) => { const r=await axios.put(api+'/after-sale/'+a.id+'/handle',{adminReply:status===2?'已批准处理':'已拒绝',status});if(r.data.code===200){ElementPlus.ElMessage.success('操作成功');loadAfterSales()} };
+        const loadUsers = async () => { const r=await axios.get(api+'/user/list');if(r.data.code===200)userList.value=r.data.data; };
+        const toggleUser = async (u) => { await axios.put(api+'/user/'+u.id+'/toggle');loadUsers(); };
+        const loadLogs = async () => { const r=await axios.get(api+'/log/list');if(r.data.code===200)logList.value=r.data.data; };
+        const doLogout = () => { admin.value=null;localStorage.removeItem('admin');window.location.href='index.html'; };
+        const refreshTables = () => { nextTick(()=>{window.dispatchEvent(new Event('resize'))}); };
+
+        onMounted(() => { const saved=localStorage.getItem('admin');if(saved){admin.value=JSON.parse(saved);loadDashboard();loadCategories()}refreshTables();setTimeout(refreshTables,500); });
+
+        return { admin,loginForm,currentPage,pageTitle,dashboard,lowStockGoods,goodsList,goodsSearch,categoryList,orderList,orderFilter,afterSaleList,userList,logList,goodsDialogVisible,goodsForm,categoryDialogVisible,categoryForm,orderDetailVisible,orderDetailData,statusText,statusType,getCategoryName,doLogin,doLogout,refreshTables,loadDashboard,loadCategories,loadGoods,searchGoodsList,openGoodsDialog,saveGoods,toggleGoods,openCategoryDialog,saveCategory,deleteCategory,loadOrders,updateOrderStatus,refundOrder,viewOrderDetail,loadAfterSales,handleAfterSale,loadUsers,toggleUser,loadLogs };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

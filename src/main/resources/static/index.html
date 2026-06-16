@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>宿舍零食铺 - B2C线上商城</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        /* Space Grotesk loaded locally via fallback */
+        :root {
+            --pink:#FF3366; --blue:#3366FF; --yellow:#FFCC33; --green:#33CC99;
+            --ink:#1a1a2e; --ink2:#64748b; --ink3:#94a3b8;
+            --bg:#FFF8F0; --card:#fff;
+            --bdr:#1a1a2e; --bdr2:#E2E8F0;
+            --sh:4px 4px 0 #1a1a2e; --sh-s:2px 2px 0 #1a1a2e; --sh-l:6px 6px 0 #1a1a2e;
+            --r:6px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+        /* ===== HEADER ===== */
+        .hdr{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:3px solid var(--bdr);position:sticky;top:0;z-index:200}
+        .hdr-logo{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+        .hdr-logo .ico{width:34px;height:34px;background:var(--pink);border:2.5px solid var(--bdr);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:var(--sh-s);color:#fff}
+        .hdr-nav{display:flex;align-items:center;gap:4px}
+        .hdr-nav .nb{background:#fff;border:2px solid var(--bdr);padding:6px 12px;border-radius:var(--r);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;font-family:inherit;box-shadow:var(--sh-s)}
+        .hdr-nav .nb:hover{background:var(--yellow);transform:translate(-1px,-1px);box-shadow:var(--sh)}
+        .hdr-nav .nb:active{transform:translate(2px,2px);box-shadow:none}
+        .hdr-user{font-size:12px;font-weight:700;padding:5px 10px;background:var(--yellow);border:2px solid var(--bdr);border-radius:var(--r);margin:0 4px;box-shadow:var(--sh-s)}
+        .hdr-nav .nb.out{color:var(--ink2);border-color:var(--bdr2);box-shadow:none}
+        .hdr-nav .nb.out:hover{border-color:var(--pink);color:var(--pink);background:#FFF0F3}
+
+        /* ===== LOGIN ===== */
+        .login-wrap{display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 56px);background:var(--bg);position:relative}
+        .login-wrap .deco{position:absolute;border:3px solid var(--bdr);border-radius:var(--r);font-weight:700;padding:8px 16px;font-size:14px;box-shadow:var(--sh);pointer-events:none}
+        .login-wrap .d1{top:12%;left:8%;background:var(--yellow);transform:rotate(-6deg)}
+        .login-wrap .d2{top:22%;right:10%;background:var(--pink);color:#fff;transform:rotate(5deg)}
+        .login-wrap .d3{bottom:18%;left:12%;background:var(--blue);color:#fff;transform:rotate(3deg)}
+        .login-wrap .d4{bottom:10%;right:8%;background:var(--green);transform:rotate(-4deg)}
+        .login-box{background:var(--card);padding:36px 32px 28px;border-radius:var(--r);width:380px;border:3px solid var(--bdr);box-shadow:var(--sh-l);position:relative;z-index:1}
+        .login-title{text-align:center;margin-bottom:24px}
+        .login-title h2{font-size:22px;font-weight:700}
+        .login-title p{font-size:13px;color:var(--ink2);margin-top:4px}
+        .login-box .el-input__wrapper{border-radius:var(--r)!important;box-shadow:0 0 0 2px var(--bdr2) inset!important}
+        .login-box .el-input__wrapper:hover{box-shadow:0 0 0 2px var(--pink) inset!important}
+        .login-box .el-input__wrapper.is-focus{box-shadow:0 0 0 2.5px var(--pink) inset!important}
+        .login-btn{width:100%;height:46px;border-radius:var(--r)!important;font-size:15px!important;font-weight:700;background:var(--pink)!important;border:2.5px solid var(--bdr)!important;color:#fff!important;box-shadow:var(--sh)!important;transition:all .15s!important;letter-spacing:.5px}
+        .login-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--bdr)!important}
+        .login-btn:active{transform:translate(2px,2px);box-shadow:none!important}
+        .login-tip{text-align:center;margin-top:14px;padding:8px;background:var(--bg);border:2px solid var(--bdr2);border-radius:var(--r);font-size:12px;color:var(--ink2);font-weight:600}
+        .role-bar{display:flex;gap:0;margin-bottom:20px;border:2.5px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-s)}
+        .role-btn{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:none;background:#fff;color:var(--ink2);font-family:inherit}
+        .role-btn.on{background:var(--pink);color:#fff}
+        .role-btn:first-child{border-right:2.5px solid var(--bdr)}
+        .tip-admin{border-color:var(--blue)!important;background:#E8F0FF!important;color:var(--blue)!important}
+        .tip-user{border-color:var(--green)!important;background:#E8F8EE!important;color:#1a7a4c!important}
+
+        /* ===== HERO ===== */
+        .hero{padding:28px 0 16px;display:flex;align-items:center;gap:24px;position:relative}
+        .hero-left{flex:1}
+        .hero-left h2{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1.2}
+        .hero-left h2 .tag{display:inline-block;background:var(--yellow);border:2px solid var(--bdr);border-radius:var(--r);padding:2px 10px;margin-left:8px;font-size:14px;transform:rotate(2deg);box-shadow:var(--sh-s);vertical-align:middle}
+        .hero-left p{font-size:14px;color:var(--ink2);margin-top:6px;font-weight:500}
+        .hero-right{display:flex;gap:10px;flex-shrink:0}
+        .hero-sticker{width:72px;height:72px;border:2.5px solid var(--bdr);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:var(--sh);transition:transform .2s}
+        .hero-sticker:nth-child(1){background:var(--yellow);transform:rotate(-5deg)}
+        .hero-sticker:nth-child(2){background:var(--pink);transform:rotate(3deg)}
+        .hero-sticker:nth-child(3){background:var(--green);transform:rotate(-2deg)}
+        .hero-sticker:hover{transform:rotate(0deg) scale(1.1)}
+
+        /* ===== CONTAINER ===== */
+        .container{max-width:1100px;margin:0 auto;padding:0 24px 40px}
+
+        /* ===== SEARCH ===== */
+        .search-wrap{margin-bottom:20px}
+        .search-wrap .el-input__wrapper{border-radius:var(--r)!important;box-shadow:var(--sh)!important;border:2.5px solid var(--bdr)!important;padding:4px 6px!important}
+        .search-wrap .el-input__wrapper.is-focus{border-color:var(--pink)!important}
+        .search-wrap .el-input-group__append{border-radius:0 var(--r) var(--r) 0!important;background:var(--pink)!important;color:#fff!important;border:none!important;box-shadow:none!important;font-weight:700;border-left:2.5px solid var(--bdr)!important}
+
+        /* ===== CATEGORY TABS ===== */
+        .cat-bar{display:flex;gap:8px;margin-bottom:28px;align-items:center;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+        .cat-bar::-webkit-scrollbar{height:0}
+        .cat-btn{padding:8px 18px;border-radius:var(--r);border:2px solid var(--bdr);background:#fff;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;box-shadow:var(--sh-s);white-space:nowrap;flex-shrink:0}
+        .cat-btn:hover{background:var(--yellow);transform:translate(-1px,-1px);box-shadow:var(--sh)}
+        .cat-btn.on{background:var(--pink);color:#fff;transform:translate(-1px,-1px);box-shadow:var(--sh)}
+        .cat-sep{width:2px;height:22px;background:var(--bdr2);margin:0 2px;border-radius:1px;flex-shrink:0}
+
+        /* ===== BENTO GOODS GRID ===== */
+        .g-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+        .g-card{background:var(--card);border-radius:var(--r);border:2.5px solid var(--bdr);overflow:visible;transition:all .2s;cursor:pointer;position:relative;box-shadow:var(--sh)}
+        .g-card:hover{transform:translate(-3px,-3px) rotate(-.5deg);box-shadow:var(--sh-l)}
+        .g-card:first-child{grid-column:span 2;grid-row:span 2}
+        .g-card:first-child .g-img{height:260px;font-size:72px}
+        .g-card:first-child .g-name{font-size:16px;height:48px}
+        .g-card:first-child .g-price{font-size:26px}
+        .g-card:first-child .g-body{padding:16px 18px 10px}
+        .g-card:first-child .g-add{height:40px;font-size:14px}
+        .g-img{width:100%;height:150px;background:linear-gradient(135deg,#FFF0DB,#FFE0E6);display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;border-bottom:2.5px solid var(--bdr)}
+        .g-badges{position:absolute;top:8px;left:8px;display:flex;gap:4px;z-index:2}
+        .g-badge{padding:3px 8px;border-radius:var(--r);font-size:10px;font-weight:700;border:2px solid var(--bdr);box-shadow:var(--sh-s)}
+        .g-badge.hot{background:var(--pink);color:#fff}
+        .g-badge.rec{background:var(--yellow)}
+        .g-body{padding:12px 14px 8px}
+        .g-name{font-size:13px;font-weight:600;height:38px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.45;margin-bottom:4px}
+        .g-price{color:var(--pink);font-size:20px;font-weight:700}
+        .g-price .orig{color:var(--ink3);font-size:12px;text-decoration:line-through;margin-left:6px;font-weight:400}
+        .g-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px;color:var(--ink3);font-size:11px;font-weight:500}
+        .g-meta .low{color:var(--pink);font-weight:700}
+        .g-foot{padding:4px 12px 12px}
+        .g-add{width:100%;border-radius:var(--r)!important;font-weight:700;font-size:13px;background:var(--blue)!important;border:2px solid var(--bdr)!important;height:34px;color:#fff!important;box-shadow:var(--sh-s)!important;transition:all .15s!important}
+        .g-add:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)!important}
+        .g-add:active{transform:translate(2px,2px);box-shadow:none!important}
+        @media(max-width:900px){.g-grid{grid-template-columns:repeat(2,1fr)}.g-card:first-child{grid-column:span 2;grid-row:span 1}.g-card:first-child .g-img{height:180px}}
+
+        /* ===== SECTION TITLE ===== */
+        .sec-title{font-size:22px;font-weight:700;margin-bottom:24px;display:inline-flex;align-items:center;gap:8px;background:var(--yellow);border:2.5px solid var(--bdr);border-radius:var(--r);padding:6px 18px;box-shadow:var(--sh);letter-spacing:-.3px}
+
+        /* ===== ORDER TIMELINE ===== */
+        .o-timeline{position:relative;padding-left:28px}
+        .o-timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:3px;background:repeating-linear-gradient(to bottom,var(--bdr) 0,var(--bdr) 8px,var(--bdr2) 8px,var(--bdr2) 14px);border-radius:2px}
+        .o-card{background:var(--card);border-radius:var(--r);margin-bottom:20px;border:2.5px solid var(--bdr);transition:all .2s;overflow:hidden;box-shadow:var(--sh);position:relative}
+        .o-card::before{content:'';position:absolute;left:-24px;top:18px;width:14px;height:14px;border-radius:var(--r);border:2.5px solid var(--bdr);z-index:1}
+        .o-card[data-status="0"]::before{background:var(--yellow)}
+        .o-card[data-status="1"]::before,.o-card[data-status="2"]::before,.o-card[data-status="3"]::before{background:var(--blue)}
+        .o-card[data-status="4"]::before{background:var(--green)}
+        .o-card[data-status="5"]::before,.o-card[data-status="6"]::before{background:var(--ink3)}
+        .o-card:hover{transform:translate(4px,-2px);box-shadow:var(--sh-l)}
+        .o-head{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--bg);border-bottom:2.5px solid var(--bdr)}
+        .o-head .no{font-weight:700;font-size:13px;font-family:'Courier New',monospace;letter-spacing:.5px}
+        .o-items{padding:6px 18px}
+        .o-item{display:flex;align-items:center;gap:12px;padding:8px 0}
+        .o-item+.o-item{border-top:2px dashed var(--bdr2)}
+        .o-item .thumb{width:42px;height:42px;background:linear-gradient(135deg,#FFF0DB,#FFE0E6);border:2px solid var(--bdr);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:17px}
+        .o-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-top:2.5px solid var(--bdr);background:var(--bg)}
+        .o-foot .time{color:var(--ink3);font-size:11px;font-weight:500}
+        .o-foot .total{font-size:13px;color:var(--ink);font-weight:600}
+        .o-foot .total strong{color:var(--pink);font-size:18px}
+        .o-foot .el-button{border-radius:var(--r)!important;font-weight:600}
+
+        /* ===== EMPTY ===== */
+        .empty{text-align:center;padding:80px 20px}
+        .empty-icon{font-size:56px;margin-bottom:12px;display:inline-block;border:3px solid var(--bdr);border-radius:var(--r);padding:16px 20px;box-shadow:var(--sh);background:var(--card)}
+        .empty-text{font-size:14px;font-weight:600;color:var(--ink2);margin-top:8px}
+
+        /* ===== IMG PLACEHOLDER ===== */
+        .img-ph{width:46px;height:46px;background:linear-gradient(135deg,#FFF0DB,#FFE0E6);border:2px solid var(--bdr);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+        /* ===== DIALOGS ===== */
+        .el-dialog{border-radius:var(--r)!important;border:3px solid var(--bdr)!important;box-shadow:8px 8px 0 rgba(0,0,0,.15)!important;overflow:hidden}
+        .el-dialog__header{padding:14px 22px!important;border-bottom:2.5px solid var(--bdr);margin-right:0!important;background:var(--bg)}
+        .el-dialog__title{font-weight:700!important;font-size:16px!important}
+        .el-dialog__body{padding:18px 22px!important}
+        .el-dialog__footer{padding:12px 22px!important;border-top:2.5px solid var(--bdr);background:var(--bg)}
+        .el-overlay{background:rgba(26,26,46,.4)!important}
+
+        /* ===== ELEMENT PLUS ===== */
+        .el-button--primary{background:var(--pink)!important;border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;font-weight:600;border-radius:var(--r)!important}
+        .el-button--primary:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)!important}
+        .el-tag{border-radius:var(--r)!important;font-weight:700;border:1.5px solid var(--bdr)!important}
+        .el-input__wrapper{border-radius:var(--r)!important}
+        .el-input-number{--el-input-number-bg-color:var(--bg)}
+        .el-checkbox__input.is-checked .el-checkbox__inner{background-color:var(--pink)!important;border-color:var(--bdr)!important}
+        .el-checkbox__input.is-checked+.el-checkbox__label{color:var(--pink)!important}
+        .el-radio-button__original-radio:checked+.el-radio-button__inner{background-color:var(--pink)!important;border-color:var(--bdr)!important;box-shadow:-1px 0 0 0 var(--bdr)!important}
+
+        /* ===== DETAIL DIALOG ===== */
+        .det-img{width:130px;height:130px;background:linear-gradient(135deg,#FFF0DB,#FFE0E6);margin:0 auto;border:2.5px solid var(--bdr);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:var(--sh)}
+        .det-price{margin-top:14px;font-size:28px;color:var(--pink);font-weight:700}
+        .det-price .orig{color:var(--ink3);font-size:14px;text-decoration:line-through;font-weight:400;margin-left:6px}
+        .det-desc{color:var(--ink2);margin-top:8px;line-height:1.7;font-size:13px}
+        .det-stats{margin-top:8px;color:var(--ink3);font-size:12px;display:flex;justify-content:center;gap:16px;font-weight:500}
+        .det-qty-box{background:var(--bg);border:2.5px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-top:14px;box-shadow:var(--sh-s)}
+        .det-qty-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+        .det-qty-label{font-size:14px;font-weight:700}
+        .det-add{width:100%;font-size:15px!important;border-radius:var(--r)!important;height:44px;font-weight:700;background:var(--pink)!important;border:2.5px solid var(--bdr)!important;color:#fff!important;box-shadow:var(--sh)!important;transition:all .15s!important}
+        .det-add:hover{transform:translate(-2px,-2px);box-shadow:var(--sh-l)!important}
+
+        /* ===== CART ===== */
+        .cart-bar{display:flex;align-items:center;padding:8px 12px;background:var(--bg);border:2px solid var(--bdr);border-radius:var(--r);margin-bottom:8px;box-shadow:var(--sh-s)}
+        .cart-item{padding:10px 12px;border-bottom:2px dashed var(--bdr2);transition:opacity .15s}
+        .cart-row1{display:flex;align-items:center;gap:10px}
+        .cart-row2{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:8px;padding-left:38px}
+        .cart-subtotal{color:var(--pink);font-weight:700;width:72px;text-align:right;font-size:15px}
+        .cart-footer{display:flex;justify-content:space-between;align-items:center;width:100%}
+        .cart-footer .sum{font-size:14px;color:var(--ink);font-weight:600}
+        .cart-footer .sum strong{color:var(--pink);font-size:22px}
+
+        /* ===== CHECKOUT ===== */
+        .co-items{background:var(--bg);border:2.5px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;box-shadow:var(--sh-s)}
+        .co-label{font-size:11px;color:var(--ink2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+        .co-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;font-weight:500}
+        .co-row .price{color:var(--pink);font-weight:700}
+        .co-total{text-align:right;padding-top:12px;border-top:2.5px dashed var(--bdr2);margin-top:4px}
+        .co-total span{color:var(--ink);font-size:14px;font-weight:600}
+        .co-total strong{color:var(--pink);font-size:22px}
+
+        /* ===== PAYMENT ===== */
+        .pay-center{text-align:center}
+        .pay-orderno{font-size:12px;color:var(--ink3);margin-bottom:4px;font-family:'Courier New',monospace}
+        .pay-amount{font-size:42px;color:var(--pink);font-weight:700;margin-bottom:18px;letter-spacing:-1px}
+        .pay-qr-box{display:inline-block;padding:16px;border:2.5px solid var(--bdr);border-radius:var(--r);margin-bottom:14px;transition:all .2s;box-shadow:var(--sh)}
+        .pay-qr-box.wechat{background:#E8F8EE}
+        .pay-qr-box.alipay{background:#E8F0FF}
+        .pay-qr-label{font-size:14px;font-weight:700;margin-bottom:8px}
+        .pay-qr-label.wechat{color:#07c160}
+        .pay-qr-label.alipay{color:#1677ff}
+        .pay-qr-img{width:200px;height:200px;border:2px solid var(--bdr2);border-radius:var(--r)}
+        .pay-tip{color:var(--ink3);font-size:12px;line-height:1.8;margin-top:10px;font-weight:500}
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar{width:8px}
+        ::-webkit-scrollbar-track{background:var(--bg)}
+        ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:var(--r);border:2px solid var(--bg)}
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Header -->
+    <div class="hdr">
+        <div class="hdr-logo"><span class="ico">🏪</span>宿舍零食铺</div>
+        <div class="hdr-nav" v-if="user">
+            <button class="nb" @click="currentPage='shop'">🏠 商城</button>
+            <button class="nb" @click="currentPage='orders'; loadOrders()">📋 订单</button>
+            <button class="nb" @click="showCart">🛒 购物车<el-badge :value="cartCount" :hidden="cartCount===0" /></button>
+            <span class="hdr-user">{{ user.nickname || user.username }}</span>
+            <button class="nb out" @click="logout">退出</button>
+        </div>
+    </div>
+
+    <!-- Login -->
+    <div v-if="!user" class="login-wrap">
+        <div class="deco d1">🍬 SNACKS</div>
+        <div class="deco d2">🔥 HOT</div>
+        <div class="deco d3">🥤 DRINKS</div>
+        <div class="deco d4">📦 FRESH</div>
+        <div class="login-box">
+            <div class="login-title">
+                <h2>{{ isRegister ? '创建账号' : '欢迎回来' }}</h2>
+                <p>{{ isRegister ? '注册你的宿舍零食铺账号' : '登录你的宿舍零食铺账号' }}</p>
+            </div>
+            <div class="role-bar" v-if="!isRegister">
+                <button class="role-btn" :class="{on: loginRole==='user'}" @click="loginRole='user'">🛒 我是用户</button>
+                <button class="role-btn" :class="{on: loginRole==='admin'}" @click="loginRole='admin'">⚙️ 我是管理员</button>
+            </div>
+            <el-form :model="loginForm" label-width="0">
+                <el-form-item><el-input v-model="loginForm.username" placeholder="学号/用户名" prefix-icon="User" size="large" /></el-form-item>
+                <el-form-item><el-input v-model="loginForm.password" placeholder="密码" type="password" prefix-icon="Lock" size="large" show-password @keyup.enter="isRegister ? doRegister() : doLogin()" /></el-form-item>
+                <template v-if="isRegister">
+                    <el-form-item><el-input v-model="loginForm.nickname" placeholder="昵称" prefix-icon="Postcard" size="large" /></el-form-item>
+                    <el-form-item><el-input v-model="loginForm.phone" placeholder="手机号" prefix-icon="Phone" size="large" /></el-form-item>
+                    <el-form-item><el-input v-model="loginForm.dormitory" placeholder="宿舍号 (如: 3栋401)" prefix-icon="House" size="large" /></el-form-item>
+                </template>
+                <el-form-item><el-button type="primary" size="large" class="login-btn" @click="isRegister ? doRegister() : doLogin()">{{ isRegister ? '注 册' : (loginRole==='admin' ? '管理员登录' : '用户登录') }}</el-button></el-form-item>
+                <div style="text-align:center" v-if="!isRegister || loginRole==='user'"><el-link type="primary" @click="isRegister=!isRegister" :underline="false" style="color:var(--pink);font-weight:600">{{ isRegister ? '已有账号？去登录' : '没有账号？去注册' }}</el-link></div>
+            </el-form>
+            <div class="login-tip tip-user" v-if="loginRole==='user' && !isRegister">👤 用户测试账号：2023001 / 123456</div>
+            <div class="login-tip tip-admin" v-if="loginRole==='admin' && !isRegister">🔑 管理员账号：admin / admin123</div>
+            <div class="login-tip" v-if="isRegister">注册成功后将自动切换到登录模式</div>
+        </div>
+    </div>
+
+    <!-- Shop -->
+    <div class="container" v-if="user && currentPage==='shop'">
+        <div class="hero">
+            <div class="hero-left">
+                <h2>🍿 你的宿舍零食管家 <span class="tag">YUMMY!</span></h2>
+                <p>新鲜零食、饮料、日用品，送货到宿舍门口</p>
+            </div>
+            <div class="hero-right">
+                <div class="hero-sticker">🍬</div>
+                <div class="hero-sticker">🥤</div>
+                <div class="hero-sticker">🍪</div>
+            </div>
+        </div>
+        <div class="search-wrap">
+            <el-input v-model="searchKeyword" placeholder="搜索零食、饮料、日用品..." size="large" clearable @clear="loadGoods" @keyup.enter="searchGoods">
+                <template #append><el-button @click="searchGoods">搜索</el-button></template>
+            </el-input>
+        </div>
+        <div class="cat-bar">
+            <button class="cat-btn" :class="{on: selectedCategory===null && !showHot && !showRecommend}" @click="selectCategory(null)">全部商品</button>
+            <button class="cat-btn" v-for="cat in categories" :key="cat.id" :class="{on: selectedCategory===cat.id}" @click="selectCategory(cat.id)">{{ cat.name }}</button>
+            <span class="cat-sep"></span>
+            <button class="cat-btn" :class="{on: showHot}" @click="toggleHot">🔥 热销</button>
+            <button class="cat-btn" :class="{on: showRecommend}" @click="toggleRecommend">⭐ 推荐</button>
+        </div>
+        <div class="g-grid" v-if="goodsList.length">
+            <div class="g-card" v-for="g in goodsList" :key="g.id">
+                <div @click="viewGoods(g)">
+                    <div class="g-img">
+                        <div class="g-badges"><span class="g-badge hot" v-if="g.isHot===1">热销</span><span class="g-badge rec" v-if="g.isRecommend===1">推荐</span></div>
+                        🛒
+                    </div>
+                    <div class="g-body">
+                        <div class="g-name">{{ g.name }}</div>
+                        <div class="g-price">¥{{ g.price }}<span class="orig" v-if="g.originalPrice">¥{{ g.originalPrice }}</span></div>
+                        <div class="g-meta"><span>已售 {{ g.sales }}</span><span v-if="g.stock<=g.stockWarning" class="low">库存紧张</span><span v-else>库存 {{ g.stock }}</span></div>
+                    </div>
+                </div>
+                <div class="g-foot"><el-button type="primary" size="small" class="g-add" @click.stop="quickAddToCart(g)">🛒 加入购物车</el-button></div>
+            </div>
+        </div>
+        <div class="empty" v-else><div class="empty-icon">📦</div><div class="empty-text">暂无商品</div></div>
+    </div>
+
+    <!-- Orders -->
+    <div class="container" v-if="user && currentPage==='orders'">
+        <div class="sec-title">📋 我的订单</div>
+        <div v-if="orderList.length" class="o-timeline" style="margin-top:20px">
+            <div class="o-card" v-for="o in orderList" :key="o.id" :data-status="o.status">
+                <div class="o-head"><span class="no">{{ o.orderNo }}</span><el-tag :type="statusType(o.status)" size="small">{{ statusText(o.status) }}</el-tag></div>
+                <div class="o-items">
+                    <div class="o-item" v-for="item in o.items" :key="item.id">
+                        <div class="thumb">🛒</div>
+                        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.goodsName }}</div><div style="color:var(--ink3);font-size:12px;margin-top:2px">¥{{ item.goodsPrice }} × {{ item.quantity }}</div></div>
+                        <div style="color:var(--pink);font-weight:700;font-size:14px">¥{{ item.subtotal }}</div>
+                    </div>
+                </div>
+                <div class="o-foot">
+                    <span class="time">{{ o.createTime }}</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <span class="total">合计：<strong>¥{{ o.totalAmount }}</strong></span>
+                        <el-button v-if="o.status===0" type="primary" size="small" @click="payOrder(o)">去支付</el-button>
+                        <el-button v-if="o.status===0" size="small" @click="cancelOrder(o)" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消</el-button>
+                        <el-button v-if="o.status>=1 && o.status<=4" size="small" @click="applyAfterSale(o)" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">售后</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="empty" v-else><div class="empty-icon">📦</div><div class="empty-text">暂无订单</div></div>
+    </div>
+
+    <!-- Product Detail Dialog -->
+    <el-dialog v-model="goodsDetailVisible" :title="goodsDetail?.name" width="460px">
+        <div style="text-align:center;padding:6px 10px">
+            <div class="det-img">🛒</div>
+            <div class="det-price">¥{{ goodsDetail?.price }}<span class="orig" v-if="goodsDetail?.originalPrice">¥{{ goodsDetail?.originalPrice }}</span></div>
+            <div class="det-desc">{{ goodsDetail?.description }}</div>
+            <div class="det-stats"><span>库存 {{ goodsDetail?.stock }}</span><span style="color:var(--bdr2)">|</span><span>已售 {{ goodsDetail?.sales }}</span></div>
+        </div>
+        <div class="det-qty-box">
+            <div class="det-qty-row"><span class="det-qty-label">购买数量</span><el-input-number v-model="addQty" :min="1" :max="goodsDetail?.stock||1" size="default" /></div>
+            <el-button type="primary" size="large" class="det-add" @click="addToCart">🛒 加入购物车</el-button>
+        </div>
+    </el-dialog>
+
+    <!-- Cart Dialog -->
+    <el-dialog v-model="cartVisible" title="🛒 我的购物车" width="560px">
+        <div v-if="cartList.length">
+            <div class="cart-bar"><el-checkbox :model-value="allSelected" :indeterminate="isIndeterminate" @change="toggleSelectAll" style="margin-right:12px">全选</el-checkbox><span style="flex:1;color:var(--ink2);font-size:13px;font-weight:500">已选 {{ selectedCartIds.length }} / {{ cartList.length }} 件</span></div>
+            <div v-for="c in cartList" :key="c.id" class="cart-item" :style="{opacity: selectedCartIds.includes(c.id)?1:0.4}">
+                <div class="cart-row1"><el-checkbox :label="c.id" v-model="selectedCartIds" @click.stop><span style="display:none"></span></el-checkbox><div class="img-ph">🛒</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.goods?.name }}</div><div style="color:var(--pink);font-weight:700;margin-top:2px;font-size:14px">¥{{ c.goods?.price }}</div></div><el-button type="danger" text size="small" @click="removeCartItem(c)" style="color:var(--pink)!important;font-weight:700">删除</el-button></div>
+                <div class="cart-row2"><el-input-number v-model="c.quantity" :min="1" :max="c.goods?.stock||99" size="small" @change="updateCartQty(c)" /><span class="cart-subtotal">¥{{ (c.goods?.price * c.quantity).toFixed(2) }}</span></div>
+            </div>
+        </div>
+        <div class="empty" v-else><div class="empty-icon">🛒</div><div class="empty-text">购物车是空的</div></div>
+        <template #footer>
+            <div class="cart-footer"><span class="sum">选中合计：<strong>¥{{ selectedTotal }}</strong></span><div style="display:flex;gap:8px"><el-button @click="cartVisible=false" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">继续购物</el-button><el-button type="primary" @click="checkout" :disabled="!selectedCartIds.length">去结算({{ selectedCartIds.length }})</el-button></div></div>
+        </template>
+    </el-dialog>
+
+    <!-- Checkout Dialog -->
+    <el-dialog v-model="checkoutVisible" title="确认订单" width="460px">
+        <div class="co-items"><div class="co-label">已选商品 ({{ selectedItems.length }}件)</div><div v-for="c in selectedItems" :key="c.id" class="co-row"><span>{{ c.goods?.name }} × {{ c.quantity }}</span><span class="price">¥{{ (c.goods?.price * c.quantity).toFixed(2) }}</span></div></div>
+        <el-form :model="checkoutForm" label-width="80px">
+            <el-form-item label="宿舍号"><el-input v-model="checkoutForm.dormitory" :placeholder="user.dormitory||'如: 3栋401'" /></el-form-item>
+            <el-form-item label="联系电话"><el-input v-model="checkoutForm.phone" :placeholder="user.phone||'手机号'" /></el-form-item>
+            <el-form-item label="备注"><el-input v-model="checkoutForm.remark" placeholder="选填" /></el-form-item>
+        </el-form>
+        <div class="co-total"><span>共 {{ selectedItems.length }} 件，合计：</span><strong>¥{{ selectedTotal }}</strong></div>
+        <template #footer><el-button @click="checkoutVisible=false" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消</el-button><el-button type="primary" @click="submitOrder">提交订单</el-button></template>
+    </el-dialog>
+
+    <!-- Payment Dialog -->
+    <el-dialog v-model="payVisible" title="扫码支付" width="420px" :close-on-click-modal="false">
+        <div class="pay-center">
+            <div class="pay-orderno">{{ payOrderData?.orderNo }}</div>
+            <div class="pay-amount">¥{{ payOrderData?.totalAmount }}</div>
+            <div class="pay-qr-box" :class="payType===1?'wechat':'alipay'"><div class="pay-qr-label" :class="payType===1?'wechat':'alipay'">{{ payType===1?'微信支付':'支付宝支付' }}</div><img :src="payType===1 ? '/wechat-qr.jpg' : '/alipay-qr.jpg'" class="pay-qr-img" /></div>
+            <div style="margin-bottom:8px"><el-radio-group v-model="payType" size="default"><el-radio-button :value="1">💚 微信支付</el-radio-button><el-radio-button :value="2">💙 支付宝</el-radio-button></el-radio-group></div>
+            <div class="pay-tip">请打开{{ payType===1?'微信':'支付宝' }}扫描上方二维码完成转账<br>支付完成后点击下方「我已支付」按钮确认</div>
+        </div>
+        <template #footer><el-button @click="cancelPayment" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消支付</el-button><el-button type="primary" :style="{background: payType===1?'#07c160':'#1677ff', borderColor: '#1a1a2e'}" @click="confirmPay" :loading="payLoading">✅ 我已支付</el-button></template>
+    </el-dialog>
+
+    <!-- After-sale Dialog -->
+    <el-dialog v-model="afterSaleVisible" title="申请售后" width="450px">
+        <el-form :model="afterSaleForm" label-width="80px">
+            <el-form-item label="售后类型"><el-select v-model="afterSaleForm.type" style="width:100%"><el-option :value="1" label="退款" /><el-option :value="2" label="退货退款" /><el-option :value="3" label="换货" /><el-option :value="4" label="投诉" /></el-select></el-form-item>
+            <el-form-item label="售后原因"><el-input v-model="afterSaleForm.reason" placeholder="请描述问题原因" /></el-form-item>
+            <el-form-item label="详细描述"><el-input v-model="afterSaleForm.description" type="textarea" :rows="3" placeholder="选填" /></el-form-item>
+        </el-form>
+        <template #footer><el-button @click="afterSaleVisible=false" style="border:2px solid var(--bdr)!important;box-shadow:var(--sh-s)!important;border-radius:var(--r)!important">取消</el-button><el-button type="primary" @click="submitAfterSale">提交申请</el-button></template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+const app = createApp({
+    setup() {
+        const user = ref(null);
+        const isRegister = ref(false);
+        const loginRole = ref('user');
+        const loginForm = reactive({ username:'', password:'', nickname:'', phone:'', dormitory:'' });
+        const currentPage = ref('shop');
+        const categories = ref([]);
+        const goodsList = ref([]);
+        const selectedCategory = ref(null);
+        const searchKeyword = ref('');
+        const showHot = ref(false);
+        const showRecommend = ref(false);
+        const cartList = ref([]);
+        const cartVisible = ref(false);
+        const selectedCartIds = ref([]);
+        const goodsDetailVisible = ref(false);
+        const goodsDetail = ref(null);
+        const addQty = ref(1);
+        const checkoutVisible = ref(false);
+        const checkoutForm = reactive({ dormitory:'', phone:'', remark:'' });
+        const orderList = ref([]);
+        const payVisible = ref(false);
+        const payOrderData = ref(null);
+        const payType = ref(1);
+        const payLoading = ref(false);
+        const afterSaleVisible = ref(false);
+        const afterSaleForm = reactive({ orderId:null, type:1, reason:'', description:'' });
+        const api = '/api';
+
+        const cartCount = computed(() => cartList.value.reduce((s,c) => s+c.quantity, 0));
+        const cartTotal = computed(() => cartList.value.reduce((s,c) => s + (c.goods?.price||0)*c.quantity, 0).toFixed(2));
+        const selectedItems = computed(() => cartList.value.filter(c => selectedCartIds.value.includes(c.id)));
+        const selectedTotal = computed(() => selectedItems.value.reduce((s,c) => s + (c.goods?.price||0)*c.quantity, 0).toFixed(2));
+        const allSelected = computed({ get: () => cartList.value.length > 0 && selectedCartIds.value.length === cartList.value.length, set: () => {} });
+        const isIndeterminate = computed(() => selectedCartIds.value.length > 0 && selectedCartIds.value.length < cartList.value.length);
+        const toggleSelectAll = () => { selectedCartIds.value = selectedCartIds.value.length === cartList.value.length ? [] : cartList.value.map(c => c.id); };
+        const toggleCartSelect = (c, val) => { if(val){if(!selectedCartIds.value.includes(c.id))selectedCartIds.value.push(c.id)}else{selectedCartIds.value=selectedCartIds.value.filter(id=>id!==c.id)} };
+
+        const statusText = (s) => ['待支付','已支付','备货中','配送中','已完成','已取消','已退款'][s]||'未知';
+        const statusType = (s) => ['warning','primary','primary','primary','success','info','danger'][s]||'info';
+
+        const loadCategories = async () => { const r = await axios.get(api+'/category/list'); if(r.data.code===200) categories.value = r.data.data; };
+        const loadGoods = async () => { showHot.value=false;showRecommend.value=false;selectedCategory.value=null;const r=await axios.get(api+'/goods/list');if(r.data.code===200)goodsList.value=r.data.data; };
+        const selectCategory = async (id) => { selectedCategory.value=id;showHot.value=false;showRecommend.value=false;const r=id?await axios.get(api+'/goods/list?categoryId='+id):await axios.get(api+'/goods/list');if(r.data.code===200)goodsList.value=r.data.data; };
+        const searchGoods = async () => { if(!searchKeyword.value)return loadGoods();showHot.value=false;showRecommend.value=false;selectedCategory.value=null;const r=await axios.get(api+'/goods/search?keyword='+searchKeyword.value);if(r.data.code===200)goodsList.value=r.data.data; };
+        const toggleHot = async () => { showHot.value=!showHot.value;showRecommend.value=false;selectedCategory.value=null;if(showHot.value){const r=await axios.get(api+'/goods/hot');if(r.data.code===200)goodsList.value=r.data.data}else loadGoods(); };
+        const toggleRecommend = async () => { showRecommend.value=!showRecommend.value;showHot.value=false;selectedCategory.value=null;if(showRecommend.value){const r=await axios.get(api+'/goods/recommend');if(r.data.code===200)goodsList.value=r.data.data}else loadGoods(); };
+        const viewGoods = (g) => { goodsDetail.value=g;addQty.value=1;goodsDetailVisible.value=true; };
+
+        const loadCart = async () => { if(!user.value)return;const r=await axios.get(api+'/cart/list/'+user.value.id);if(r.data.code===200){cartList.value=r.data.data;selectedCartIds.value=cartList.value.map(c=>c.id)} };
+        const showCart = async () => { await loadCart();selectedCartIds.value=cartList.value.map(c=>c.id);cartVisible.value=true; };
+        const addToCart = async () => { const r=await axios.post(api+'/cart/add',{userId:user.value.id,goodsId:goodsDetail.value.id,quantity:addQty.value});if(r.data.code===200){ElementPlus.ElMessage.success('已加入购物车');goodsDetailVisible.value=false;loadCart()}else ElementPlus.ElMessage.error(r.data.message); };
+        const quickAddToCart = async (g) => { const r=await axios.post(api+'/cart/add',{userId:user.value.id,goodsId:g.id,quantity:1});if(r.data.code===200){ElementPlus.ElMessage.success(g.name+' 已加入购物车');loadCart()}else ElementPlus.ElMessage.error(r.data.message); };
+        const updateCartQty = async (c) => { await axios.put(api+'/cart/'+c.id,{quantity:c.quantity}); };
+        const removeCartItem = async (c) => { await axios.delete(api+'/cart/'+c.id);selectedCartIds.value=selectedCartIds.value.filter(id=>id!==c.id);loadCart(); };
+        const checkout = () => { if(!selectedCartIds.value.length)return ElementPlus.ElMessage.warning('请至少选择一件商品');checkoutForm.dormitory=user.value.dormitory||'';checkoutForm.phone=user.value.phone||'';checkoutForm.remark='';cartVisible.value=false;checkoutVisible.value=true; };
+        const submitOrder = async () => {
+            const itemsToOrder=selectedItems.value;if(!itemsToOrder.length)return ElementPlus.ElMessage.warning('没有选中的商品');
+            const items=itemsToOrder.map(c=>({goodsId:c.goodsId,quantity:c.quantity}));const orderedCartIds=itemsToOrder.map(c=>c.id);
+            const r=await axios.post(api+'/order/create',{userId:user.value.id,dormitory:checkoutForm.dormitory||user.value.dormitory,phone:checkoutForm.phone||user.value.phone,remark:checkoutForm.remark,items});
+            if(r.data.code===200){ElementPlus.ElMessage.success('订单创建成功，请完成支付');checkoutVisible.value=false;try{for(const cartId of orderedCartIds){await axios.delete(api+'/cart/'+cartId)}cartList.value=cartList.value.filter(c=>!orderedCartIds.includes(c.id));selectedCartIds.value=selectedCartIds.value.filter(id=>!orderedCartIds.includes(id))}catch(e){try{await loadCart()}catch(e2){}}payOrderData.value=r.data.data;payType.value=1;payLoading.value=false;payVisible.value=true}else ElementPlus.ElMessage.error(r.data.message);
+        };
+        const payOrder = (o) => { payOrderData.value=o;payType.value=1;payLoading.value=false;payVisible.value=true; };
+        const cancelPayment = () => { payVisible.value=false; };
+        const confirmPay = async () => {
+            try{await ElementPlus.ElMessageBox.confirm('请确认您已通过'+(payType.value===1?'微信':'支付宝')+'扫码完成支付，点击确定后系统将确认订单。','确认支付完成',{confirmButtonText:'确定，已完成支付',cancelButtonText:'还未支付',type:'info'})}catch(e){return}
+            payLoading.value=true;try{const r=await axios.post(api+'/payment/pay',{orderId:payOrderData.value.id,payType:payType.value});if(r.data.code===200){ElementPlus.ElMessage.success('支付成功！感谢您的购买');payVisible.value=false;loadOrders()}else ElementPlus.ElMessage.error(r.data.message)}catch(e){ElementPlus.ElMessage.error('网络错误，请稍后重试')}finally{payLoading.value=false}
+        };
+        const cancelOrder = async (o) => {
+            try{await ElementPlus.ElMessageBox.confirm('确定取消此订单？','提示',{type:'warning'})}catch(e){return}
+            try{const r=await axios.put(api+'/order/'+o.id+'/cancel',{reason:'用户主动取消'});if(r.data.code===200){ElementPlus.ElMessage.success('订单已取消');loadOrders()}else ElementPlus.ElMessage.error(r.data.message)}catch(e){ElementPlus.ElMessage.error('取消订单失败，请重试')}
+        };
+        const loadOrders = async () => { const r=await axios.get(api+'/order/list?userId='+user.value.id);if(r.data.code===200)orderList.value=r.data.data; };
+        const applyAfterSale = (o) => { afterSaleForm.orderId=o.id;afterSaleForm.type=1;afterSaleForm.reason='';afterSaleForm.description='';afterSaleVisible.value=true; };
+        const submitAfterSale = async () => { const r=await axios.post(api+'/after-sale',{...afterSaleForm,userId:user.value.id});if(r.data.code===200){ElementPlus.ElMessage.success('售后申请已提交');afterSaleVisible.value=false}else ElementPlus.ElMessage.error(r.data.message); };
+
+        const doLogin = async () => {
+            if(!loginForm.username||!loginForm.password)return ElementPlus.ElMessage.warning('请输入账号密码');
+            if(loginRole.value==='admin'){
+                const r=await axios.post(api+'/admin/login',{username:loginForm.username,password:loginForm.password});
+                if(r.data.code===200){localStorage.setItem('admin',JSON.stringify(r.data.data));ElementPlus.ElMessage.success('管理员登录成功，正在跳转...');setTimeout(()=>{window.location.href='admin.html'},600)}
+                else ElementPlus.ElMessage.error(r.data.message);
+            }else{
+                const r=await axios.post(api+'/user/login',{username:loginForm.username,password:loginForm.password});
+                if(r.data.code===200){user.value=r.data.data;localStorage.setItem('user',JSON.stringify(user.value));loadCategories();loadGoods();loadCart();ElementPlus.ElMessage.success('登录成功')}
+                else ElementPlus.ElMessage.error(r.data.message);
+            }
+        };
+        const doRegister = async () => { if(!loginForm.username||!loginForm.password)return ElementPlus.ElMessage.warning('请填写必要信息');const r=await axios.post(api+'/user/register',loginForm);if(r.data.code===200){ElementPlus.ElMessage.success('注册成功，请登录');isRegister.value=false}else ElementPlus.ElMessage.error(r.data.message); };
+        const logout = () => { user.value=null;localStorage.removeItem('user'); };
+
+        onMounted(() => { const saved=localStorage.getItem('user');if(saved){user.value=JSON.parse(saved);loadCategories();loadGoods();loadCart()} });
+
+        return { user,isRegister,loginRole,loginForm,currentPage,categories,goodsList,selectedCategory,searchKeyword,showHot,showRecommend,cartList,cartVisible,cartCount,cartTotal,selectedCartIds,selectedItems,selectedTotal,allSelected,isIndeterminate,goodsDetailVisible,goodsDetail,addQty,checkoutVisible,checkoutForm,orderList,payVisible,payOrderData,payType,payLoading,afterSaleVisible,afterSaleForm,statusText,statusType,loadGoods,selectCategory,searchGoods,toggleHot,toggleRecommend,viewGoods,showCart,addToCart,quickAddToCart,updateCartQty,removeCartItem,toggleSelectAll,toggleCartSelect,checkout,submitOrder,payOrder,confirmPay,cancelPayment,cancelOrder,loadOrders,applyAfterSale,submitAfterSale,doLogin,doRegister,logout };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
